@@ -30,11 +30,16 @@
         <button onclick="showAnswer()">Zobrazit odpověď</button>
         <p id="answerText" style="display:none;"></p>
         <p class="timer">Čas: <span id="timer">60</span> sekund</p>
-        <button onclick="addPoints(1)">Tým 1 správně</button>
-        <button onclick="addPoints(2)">Tým 2 správně</button>
+        <button onclick="addPoints(1, true)">Tým 1 správně</button>
+        <button onclick="addPoints(1, false)">Tým 1 špatně</button>
+        <button onclick="addPoints(2, true)">Tým 2 správně</button>
+        <button onclick="addPoints(2, false)">Tým 2 špatně</button>
         <button onclick="closeQuestion()">Zavřít</button>
     </div>
     <script>
+        let timerInterval;
+        let currentQuestionPoints = 0;
+        
         const categories = ["Showbusiness", "Sport", "Pojmy", "Hlavní města", "Lidské tělo", "Random zajímavosti"];
         const questions = {
     "Showbusiness": [
@@ -81,8 +86,9 @@
     ]
 };
         
-        function generateBoard() {
+       function generateBoard() {
             const board = document.getElementById("board");
+            board.innerHTML = "";
             categories.forEach(category => {
                 const header = document.createElement("div");
                 header.className = "cell";
@@ -92,20 +98,37 @@
                     const cell = document.createElement("div");
                     cell.className = "cell";
                     cell.textContent = q.points;
-                    cell.onclick = () => showQuestion(q, cell);
+                    cell.onclick = () => {
+                        showQuestion(q, cell);
+                        cell.classList.add("disabled");
+                        cell.onclick = null;
+                    };
                     board.appendChild(cell);
                 });
             });
         }
         
         function showQuestion(question, cell) {
-            if (cell.classList.contains("disabled")) return; // Pokud už bylo vybráno, neudělá nic
-            cell.classList.add("disabled"); // Nastaví šedivou barvu a deaktivuje otázku
-            
+            currentQuestionPoints = question.points;
             document.getElementById("questionText").textContent = question.question;
             document.getElementById("answerText").textContent = question.answer;
             document.getElementById("answerText").style.display = "none";
             document.getElementById("questionBox").style.display = "block";
+            startTimer();
+        }
+        
+        function startTimer() {
+            clearInterval(timerInterval);
+            let timeLeft = 60;
+            document.getElementById("timer").textContent = timeLeft;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    closeQuestion();
+                }
+            }, 1000);
         }
         
         function showAnswer() {
@@ -114,12 +137,20 @@
         
         function closeQuestion() {
             document.getElementById("questionBox").style.display = "none";
+            clearInterval(timerInterval);
         }
         
-        function addPoints(team) {
+        function addPoints(team, correct) {
             const scoreElement = document.getElementById(`score${team}`);
-            scoreElement.textContent = parseInt(scoreElement.textContent) + 100; // Přidání bodů
+            let currentScore = parseInt(scoreElement.textContent);
+            scoreElement.textContent = correct ? currentScore + currentQuestionPoints : currentScore - currentQuestionPoints;
             closeQuestion();
+        }
+        
+        function resetGame() {
+            document.getElementById("score1").textContent = "0";
+            document.getElementById("score2").textContent = "0";
+            generateBoard();
         }
         
         generateBoard();

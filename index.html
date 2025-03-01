@@ -9,7 +9,7 @@
         .container { max-width: 900px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
         .cell { background: blue; padding: 20px; cursor: pointer; font-size: 18px; font-weight: bold; border: 2px solid white; color: white; }
-        .cell.disabled { background: gray; cursor: default; }
+        .cell.disabled { background: gray; cursor: default; } /* Šedá barva pro již vybrané otázky */
         .question-box { display: none; padding: 20px; background: white; color: black; border-radius: 10px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50%; }
         .timer { font-size: 24px; font-weight: bold; }
         .teams { display: flex; justify-content: space-around; margin: 20px; }
@@ -64,6 +64,9 @@
         }
         
         function showQuestion(question, cell) {
+            if (cell.classList.contains("disabled")) return; // Pokud už bylo vybráno, neudělá nic
+            cell.classList.add("disabled"); // Nastaví šedivou barvu a deaktivuje otázku
+            
             document.getElementById("questionText").textContent = question.question;
             document.getElementById("answerText").textContent = question.answer;
             document.getElementById("answerText").style.display = "none";
